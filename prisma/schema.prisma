@@ -32,3 +32,33 @@ model BlogPost {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  role        String
+  description String
+  stack       String[]
+  highlights  String[]
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  company     String
+  role        String
+  location    String
+  startDate   String
+  endDate     String?
+  description String
+  highlights  String[]
+  published   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

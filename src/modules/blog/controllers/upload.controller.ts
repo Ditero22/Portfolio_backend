@@ -1,14 +1,9 @@
 import fs from "node:fs/promises";
 import type { Request, Response } from "express";
 
-import {
-  uploadImageToGoogleDrive,
-} from "../../google/services/google-drive-upload.service.js";
+import { uploadImageToR2 } from "../../storage/r2-upload.service.js";
 
-export async function uploadBlogImage(
-  req: Request,
-  res: Response,
-) {
+export async function uploadBlogImage(req: Request, res: Response) {
   try {
     if (!req.file) {
       res.status(400).json({
@@ -18,27 +13,24 @@ export async function uploadBlogImage(
       return;
     }
 
-    const result = await uploadImageToGoogleDrive(
+    const result = await uploadImageToR2(
       req.file.path,
       req.file.originalname,
       req.file.mimetype,
     );
 
     // Remove the temporary local file
-    // after it has been uploaded to Google Drive.
+    // after it has been uploaded to R2.
     await fs.unlink(req.file.path);
 
     res.status(201).json({
       message: "Image uploaded successfully.",
       imageUrl: result.imageUrl,
-      fileId: result.fileId,
+      objectKey: result.objectKey,
       fileName: result.fileName,
     });
   } catch (error) {
-    console.error(
-      "Google Drive blog image upload error:",
-      error,
-    );
+    console.error("R2 blog image upload error:", error);
 
     // Clean up the temporary file if it exists.
     if (req.file?.path) {

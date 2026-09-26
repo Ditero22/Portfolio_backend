@@ -7,4 +7,5 @@ dist/
 generated/
 coverage/
 
-config/google-service-account.json
+note.md
+uploads/

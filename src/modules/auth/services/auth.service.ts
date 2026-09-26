@@ -30,7 +30,7 @@ export function createAccessToken() {
     },
     secret,
     {
-      expiresIn: "1h",
+      expiresIn: "5h",
     },
   );
 }

@@ -1,13 +1,7 @@
 import type { Request, Response } from "express";
-import {
-  createAccessToken,
-  verifyAdminPin,
-} from "../services/auth.service.js";
+import { createAccessToken, verifyAdminPin } from "../services/auth.service.js";
 
-export async function login(
-  req: Request,
-  res: Response,
-) {
+export async function login(req: Request, res: Response) {
   const { pin } = req.body;
 
   if (typeof pin !== "string" || !/^\d{8}$/.test(pin)) {
@@ -32,4 +26,4 @@ export async function login(
       role: "admin",
     },
   });
-}   
+}

@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
-import path from "node:path";
 
 import authRouter from "./modules/auth/routes/auth.routes.js";
 import blogRouter from "./modules/blog/routes/blog.routes.js";
 import uploadRouter from "./modules/blog/routes/upload.routes.js";
-import googleDriveRouter from "./modules/google/routes/google-drive.routes.js";
+import projectRouter from "./modules/project/routes/project.routes.js";
+import experienceRouter from "./modules/experience/routes/experience.routes.js";
 import {
   type AuthenticatedRequest,
   requireAuth,
@@ -16,12 +16,6 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
-
-// Serve uploaded files
-app.use(
-  "/uploads",
-  express.static(path.resolve("uploads")),
-);
 
 // Health check
 app.get("/api/health", (_req, res) => {
@@ -36,20 +30,16 @@ app.use("/api/auth", authRouter);
 
 // Blog CRUD routes
 app.use("/api", blogRouter);
+app.use("/api", projectRouter);
+app.use("/api", experienceRouter);
 
 // Blog image upload routes
 app.use("/api/blog", uploadRouter);
-app.use("/api", googleDriveRouter);
-// Admin test route
-app.get(
-  "/api/admin/test",
-  requireAuth,
-  (req: AuthenticatedRequest, res) => {
-    res.json({
-      message: "Admin access granted.",
-      user: req.user,
-    });
-  },
-);
+app.get("/api/admin/test", requireAuth, (req: AuthenticatedRequest, res) => {
+  res.json({
+    message: "Admin access granted.",
+    user: req.user,
+  });
+});
 
 export default app;

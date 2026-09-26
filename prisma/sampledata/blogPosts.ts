@@ -11,8 +11,7 @@ const blogPosts = [
   },
   {
     title: "Building My Portfolio",
-    excerpt:
-      "A look at how I am building my personal portfolio from scratch.",
+    excerpt: "A look at how I am building my personal portfolio from scratch.",
     content:
       "I am building my personal portfolio from scratch using React, TypeScript, and a backend API.",
     slug: "building-my-portfolio",

@@ -1,15 +1,13 @@
+import { mkdir } from "node:fs";
 import multer from "multer";
 
-const allowedMimeTypes = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-];
+const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, "uploads/blog");
+    mkdir("uploads/blog", { recursive: true }, (error) =>
+      cb(error, "uploads/blog"),
+    );
   },
 
   filename: (_req, file, cb) => {
@@ -33,11 +31,7 @@ const upload = multer({
 
   fileFilter: (_req, file, cb) => {
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      cb(
-        new Error(
-          "Only JPG, PNG, WebP, and GIF images are allowed.",
-        ),
-      );
+      cb(new Error("Only JPG, PNG, WebP, and GIF images are allowed."));
 
       return;
     }
