@@ -12,6 +12,7 @@ import analyticsRouter from "./modules/analytics/routes/analytics.routes.js";
 import {
   apiRateLimit,
   loginRateLimit,
+  pinResetRateLimit,
   uploadRateLimit,
 } from "./middleware/rate-limit.middleware.js";
 import {
@@ -39,6 +40,7 @@ app.use(
 
 app.use("/api", apiRateLimit);
 app.use("/api/auth/login", loginRateLimit);
+app.use("/api/auth/pin-reset", pinResetRateLimit);
 app.use("/api/blog/upload", uploadRateLimit);
 app.use(express.json({ limit: "100kb" }));
 
