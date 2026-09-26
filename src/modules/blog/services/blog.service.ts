@@ -24,8 +24,27 @@ interface UpdateBlogPostData {
 }
 
 export async function getAllBlogPosts(includeDrafts = false) {
+  if (!includeDrafts) {
+    return prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        excerpt: true,
+        slug: true,
+        category: true,
+        imageUrl: true,
+        link: true,
+        published: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   return prisma.blogPost.findMany({
-    where: includeDrafts ? {} : { published: true },
+    where: {},
     orderBy: {
       createdAt: "desc",
     },

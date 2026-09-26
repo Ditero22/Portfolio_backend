@@ -8,11 +8,19 @@ const router = require("../dist/modules/blog/routes/blog.routes.js").default;
 test("draft privacy, authenticated admin reads, and publication round trip", async () => {
   process.env.JWT_SECRET = "isolated-test-secret";
   const posts = new Map();
-  prisma.blogPost.findMany = async ({ where }) =>
-    [...posts.values()].filter(
+  prisma.blogPost.findMany = async ({ where, select }) => {
+    const results = [...posts.values()].filter(
       (post) =>
         where.published === undefined || post.published === where.published,
     );
+    return select
+      ? results.map((post) =>
+          Object.fromEntries(
+            Object.keys(select).map((key) => [key, post[key]]),
+          ),
+        )
+      : results;
+  };
   prisma.blogPost.findUnique = async ({ where }) => posts.get(where.id) ?? null;
   prisma.blogPost.findFirst = async ({ where }) =>
     [...posts.values()].find(
@@ -96,7 +104,9 @@ test("draft privacy, authenticated admin reads, and publication round trip", asy
     ).json();
     assert.equal(published.imageUrl, "https://example.com/cover.png");
     assert.equal(published.link, "https://example.com");
-    assert.equal((await (await fetch(`${base}/blog`)).json()).length, 1);
+    const publicPosts = await (await fetch(`${base}/blog`)).json();
+    assert.equal(publicPosts.length, 1);
+    assert.equal(publicPosts[0].content, undefined);
     const publicPost = await (await fetch(`${base}/blog/slug/draft`)).json();
     assert.equal(publicPost.content, content);
     assert.equal((await fetch(`${base}/blog/test-post`)).status, 200);

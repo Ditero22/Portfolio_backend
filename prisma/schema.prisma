@@ -11,13 +11,20 @@ enum Role {
   ADMIN
 }
 
+enum PortfolioContentType {
+  STACK
+  CERTIFICATION
+  RECOMMENDATION
+  SKILL
+}
+
 model User {
   id        String   @id @default(cuid())
   pinHash   String
   role      String   @default("admin")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}       
+}
 
 model BlogPost {
   id        String   @id @default(cuid())
@@ -34,21 +41,21 @@ model BlogPost {
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   role        String
   description String
   stack       String[]
   highlights  String[]
-  published   Boolean  @default(true)
-  sortOrder   Int      @default(0)
+  published   Boolean   @default(true)
+  sortOrder   Int       @default(0)
   deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Experience {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   company     String
   role        String
   location    String
@@ -56,9 +63,41 @@ model Experience {
   endDate     String?
   description String
   highlights  String[]
-  published   Boolean  @default(false)
-  sortOrder   Int      @default(0)
+  published   Boolean   @default(false)
+  sortOrder   Int       @default(0)
   deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model PortfolioContent {
+  id          String               @id @default(cuid())
+  kind        PortfolioContentType
+  title       String
+  subtitle    String?
+  description String?
+  category    String?
+  url         String?
+  published   Boolean              @default(false)
+  sortOrder   Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([kind, published, sortOrder])
+}
+
+model SiteSettings {
+  id        String   @id @default("site")
+  isHired   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model VisitorLog {
+  id        String   @id @default(cuid())
+  visitorId String
+  path      String
+  visitedAt DateTime @default(now())
+
+  @@index([visitedAt])
+  @@index([visitorId, visitedAt])
 }

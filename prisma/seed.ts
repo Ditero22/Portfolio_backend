@@ -1,3 +1,4 @@
+import "dotenv/config";
 import bcrypt from "bcrypt";
 import prisma from "../src/database/prisma.js";
 
@@ -5,7 +6,10 @@ import blogPosts from "./sampledata/blogPosts.js"; // Import the sample blog pos
 import projects from "./sampledata/projects.js";
 
 async function main() {
-  const pin = "22140709";
+  const pin = process.env.ADMIN_PIN;
+  if (!pin || !/^\d{8}$/.test(pin)) {
+    throw new Error("Set ADMIN_PIN to a private eight-digit PIN before seeding.");
+  }
   const pinHash = await bcrypt.hash(pin, 12);
   await prisma.user.upsert({
     where: {
