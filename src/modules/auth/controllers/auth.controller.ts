@@ -29,6 +29,14 @@ export async function login(req: Request, res: Response) {
     });
   }
 
+  if (!process.env.JWT_SECRET?.trim()) {
+    return res.status(503).json({
+      code: "AUTH_NOT_CONFIGURED",
+      message:
+        "Admin sign-in is unavailable because the backend JWT_SECRET is not configured.",
+    });
+  }
+
   const valid = await verifyAdminPin(pin);
 
   if (!valid) {
