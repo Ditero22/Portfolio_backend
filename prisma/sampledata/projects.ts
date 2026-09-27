@@ -1,5 +1,7 @@
 const projects = [
   {
+    slug: "bjoc-real-time-tracking-system",
+    category: "web",
     title: "BJOC real-time tracking system",
     role: "Capstone · Full-stack developer",
     description:
@@ -13,6 +15,8 @@ const projects = [
     published: true,
   },
   {
+    slug: "dental-clinic-management-system",
+    category: "web",
     title: "Dental Clinic Management System",
     role: "Internship · Frontend lead developer",
     description:
@@ -26,6 +30,8 @@ const projects = [
     published: true,
   },
   {
+    slug: "lgu-management-system",
+    category: "web",
     title: "LGU Management System",
     role: "Internship · Frontend developer",
     description:
@@ -39,6 +45,8 @@ const projects = [
     published: true,
   },
   {
+    slug: "we-connect-mobile-application",
+    category: "mobile",
     title: "We Connect Mobile Application",
     role: "Internship · UI/UX and mobile frontend",
     description:

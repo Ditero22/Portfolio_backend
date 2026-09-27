@@ -41,17 +41,28 @@ model BlogPost {
 }
 
 model Project {
-  id          String    @id @default(cuid())
-  title       String
-  role        String
-  description String
-  stack       String[]
-  highlights  String[]
-  published   Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  category        String    @default("web")
+  role            String
+  description     String
+  fullDescription String?
+  stack           String[]
+  highlights      String[]
+  coverImageUrl   String?
+  images          String[]  @default([])
+  status          String    @default("completed")
+  sourceUrl       String?
+  liveUrl         String?
+  featured        Boolean   @default(false)
+  published       Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([category, published, deletedAt, sortOrder])
 }
 
 model Experience {
