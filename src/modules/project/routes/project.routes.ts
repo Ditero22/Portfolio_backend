@@ -11,6 +11,12 @@ const projectCategories = new Set([
   "other",
 ]);
 const projectStatuses = new Set(["completed", "in-progress", "planned"]);
+const projectContributionKinds = new Set([
+  "built",
+  "designed",
+  "supported",
+  "team",
+]);
 const textLimits = {
   title: 160,
   role: 120,
@@ -138,6 +144,51 @@ function parseProjectPayload(value: unknown, partial: boolean): ParsedProject {
         throw new Error("Project images must use HTTP or HTTPS URLs.");
       }
       data[field] = items;
+    }
+
+    if (value.contributions !== undefined || !partial) {
+      const input = value.contributions ?? [];
+      if (!Array.isArray(input) || input.length > 40) {
+        throw new Error("Add up to 40 project contribution details.");
+      }
+
+      data.contributions = input.map((item) => {
+        if (!isRecord(item)) {
+          throw new Error("Each project contribution must be an object.");
+        }
+
+        const kind =
+          typeof item.kind === "string" ? item.kind.trim().toLowerCase() : "";
+        const title = typeof item.title === "string" ? item.title.trim() : "";
+        const details =
+          item.details === undefined || item.details === null
+            ? ""
+            : typeof item.details === "string"
+              ? item.details.trim()
+              : null;
+
+        if (!projectContributionKinds.has(kind)) {
+          throw new Error(
+            "Choose built, designed, supported, or team for each contribution.",
+          );
+        }
+        if (!title || title.length > 160) {
+          throw new Error(
+            "Each contribution needs a title with no more than 160 characters.",
+          );
+        }
+        if (details === null || details.length > 500) {
+          throw new Error(
+            "Contribution details must be text with no more than 500 characters.",
+          );
+        }
+
+        return {
+          kind,
+          title,
+          ...(details ? { details } : {}),
+        };
+      });
     }
 
     for (const field of ["coverImageUrl", "sourceUrl", "liveUrl"] as const) {

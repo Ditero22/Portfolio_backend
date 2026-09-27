@@ -5,8 +5,8 @@ const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    mkdir("uploads/blog", { recursive: true }, (error) =>
-      cb(error, "uploads/blog"),
+    mkdir("uploads/portfolio", { recursive: true }, (error) =>
+      cb(error, "uploads/portfolio"),
     );
   },
 

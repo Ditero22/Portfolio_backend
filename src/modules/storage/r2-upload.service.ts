@@ -75,9 +75,11 @@ export async function uploadImageToR2(
   filePath: string,
   fileName: string,
   mimeType: string,
+  prefix: "blog" | "projects" = "blog",
 ): Promise<R2UploadResult> {
   const extension = fileName.match(/\.([a-zA-Z0-9]+)$/)?.[1]?.toLowerCase();
-  const objectKey = `blog/${randomUUID()}${extension ? `.${extension}` : ""}`;
+  const objectKey =
+    prefix + "/" + randomUUID() + (extension ? "." + extension : "");
 
   await client.send(
     new PutObjectCommand({

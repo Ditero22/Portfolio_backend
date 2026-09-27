@@ -4,10 +4,17 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 
 process.env.JWT_SECRET = "isolated-project-test-secret";
+process.env.R2_ACCOUNT_ID ??= "test-account";
+process.env.R2_ACCESS_KEY_ID ??= "test-access-key";
+process.env.R2_SECRET_ACCESS_KEY ??= "test-secret-key";
+process.env.R2_BUCKET_NAME ??= "test-bucket";
+process.env.R2_PUBLIC_URL ??= "https://images.example.test";
 
 const prisma = require("../dist/database/prisma.js").default;
 const router =
   require("../dist/modules/project/routes/project.routes.js").default;
+const uploadRouter =
+  require("../dist/modules/project/routes/upload.routes.js").default;
 
 test("project categories and metadata persist through protected CRUD", async () => {
   const records = new Map();
@@ -76,6 +83,7 @@ test("project categories and metadata persist through protected CRUD", async () 
   const app = express();
   app.use(express.json());
   app.use("/api", router);
+  app.use("/api/projects", uploadRouter);
   const server = app.listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   const base = `http://127.0.0.1:${server.address().port}/api`;
@@ -88,6 +96,21 @@ test("project categories and metadata persist through protected CRUD", async () 
 
   try {
     assert.equal((await fetch(`${base}/admin/projects`)).status, 401);
+    assert.equal(
+      (await fetch(`${base}/projects/upload`, { method: "POST" })).status,
+      401,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/projects/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${jwt.sign({ userId: "admin", role: "admin" }, process.env.JWT_SECRET)}`
+          },
+        })
+      ).status,
+      400,
+    );
     assert.equal(
       (
         await send("/projects", "POST", {
@@ -111,6 +134,19 @@ test("project categories and metadata persist through protected CRUD", async () 
       ).status,
       400,
     );
+    assert.equal(
+      (
+        await send("/projects", "POST", {
+          title: "Invalid contribution",
+          role: "Developer",
+          description: "Test project",
+          contributions: [
+            { kind: "reviewed", title: "Frontend" },
+          ],
+        })
+      ).status,
+      400,
+    );
 
     const createResponse = await send("/projects", "POST", {
       title: "Multi-Branch Office Network",
@@ -120,6 +156,17 @@ test("project categories and metadata persist through protected CRUD", async () 
       category: "networking",
       stack: ["Cisco Packet Tracer", "VLAN", "OSPF", "DHCP", "ACL"],
       highlights: ["Inter-VLAN routing", "Static and dynamic routes"],
+      contributions: [
+        {
+          kind: "built",
+          title: "VLAN segmentation",
+          details: "Configured separate networks for staff and guests.",
+        },
+        {
+          kind: "team",
+          title: "Requirements gathering",
+        },
+      ],
       coverImageUrl: "https://images.example.test/topology.png",
       images: ["https://images.example.test/switches.png"],
       status: "completed",
@@ -144,6 +191,14 @@ test("project categories and metadata persist through protected CRUD", async () 
       "DHCP",
       "ACL",
     ]);
+    assert.deepEqual(created.contributions, [
+      {
+        kind: "built",
+        title: "VLAN segmentation",
+        details: "Configured separate networks for staff and guests.",
+      },
+      { kind: "team", title: "Requirements gathering" },
+    ]);
     assert.equal(created.featured, true);
     assert.equal(
       (
@@ -162,6 +217,13 @@ test("project categories and metadata persist through protected CRUD", async () 
       category: "mobile",
       status: "in-progress",
       stack: ["Flutter", "Dart"],
+      contributions: [
+        {
+          kind: "supported",
+          title: "Mobile app testing",
+          details: "Helped test key flows across devices.",
+        },
+      ],
     });
     assert.equal(updateResponse.status, 200);
     const updated = await updateResponse.json();
@@ -169,10 +231,18 @@ test("project categories and metadata persist through protected CRUD", async () 
     assert.equal(updated.slug, created.slug);
     assert.equal(updated.status, "in-progress");
     assert.deepEqual(updated.stack, ["Flutter", "Dart"]);
+    assert.deepEqual(updated.contributions, [
+      {
+        kind: "supported",
+        title: "Mobile app testing",
+        details: "Helped test key flows across devices.",
+      },
+    ]);
 
     const publicProjects = await (await fetch(`${base}/projects`)).json();
     assert.equal(publicProjects.length, 1);
     assert.equal(publicProjects[0].category, "mobile");
+    assert.deepEqual(publicProjects[0].contributions, updated.contributions);
     assert.equal(
       publicProjects[0].fullDescription,
       "Configured and tested branch connectivity.",

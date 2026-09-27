@@ -5,6 +5,7 @@ import authRouter from "./modules/auth/routes/auth.routes.js";
 import blogRouter from "./modules/blog/routes/blog.routes.js";
 import uploadRouter from "./modules/blog/routes/upload.routes.js";
 import projectRouter from "./modules/project/routes/project.routes.js";
+import projectUploadRouter from "./modules/project/routes/upload.routes.js";
 import experienceRouter from "./modules/experience/routes/experience.routes.js";
 import portfolioContentRouter from "./modules/portfolioContent/routes/portfolioContent.routes.js";
 import settingsRouter from "./modules/settings/routes/settings.routes.js";
@@ -42,6 +43,7 @@ app.use("/api", apiRateLimit);
 app.use("/api/auth/login", loginRateLimit);
 app.use("/api/auth/pin-reset", pinResetRateLimit);
 app.use("/api/blog/upload", uploadRateLimit);
+app.use("/api/projects/upload", uploadRateLimit);
 app.use(express.json({ limit: "100kb" }));
 
 // Health check
@@ -65,6 +67,7 @@ app.use("/api", settingsRouter);
 
 // Blog image upload routes
 app.use("/api/blog", uploadRouter);
+app.use("/api/projects", projectUploadRouter);
 app.get("/api/admin/test", requireAuth, (req: AuthenticatedRequest, res) => {
   res.json({
     message: "Admin access granted.",

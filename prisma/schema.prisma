@@ -50,6 +50,7 @@ model Project {
   fullDescription String?
   stack           String[]
   highlights      String[]
+  contributions   Json?
   coverImageUrl   String?
   images          String[]  @default([])
   status          String    @default("completed")
