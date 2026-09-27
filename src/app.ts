@@ -23,6 +23,24 @@ import {
 
 const app = express();
 
+function safeErrorDetails(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const sanitizedMessage = message.replace(
+    /postgres(?:ql)?:\/\/[^\s'"`]+/gi,
+    "[redacted database URL]",
+  );
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? error.code
+      : undefined;
+
+  return {
+    name: error instanceof Error ? error.name : "UnknownError",
+    ...(typeof code === "string" || typeof code === "number" ? { code } : {}),
+    message: sanitizedMessage,
+  };
+}
+
 const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS ?? 0);
 if (!Number.isSafeInteger(trustProxyHops) || trustProxyHops < 0) {
   throw new Error("TRUST_PROXY_HOPS must be a non-negative integer.");
@@ -78,7 +96,7 @@ app.get("/api/admin/test", requireAuth, (req: AuthenticatedRequest, res) => {
 app.use(
   (
     error: unknown,
-    _req: express.Request,
+    req: express.Request,
     res: express.Response,
     next: express.NextFunction,
   ) => {
@@ -86,7 +104,11 @@ app.use(
       next(error);
       return;
     }
-    console.error("Unhandled API request error.");
+    console.error("Unhandled API request error.", {
+      method: req.method,
+      path: req.path,
+      ...safeErrorDetails(error),
+    });
     res.status(500).json({ message: "Internal server error." });
   },
 );
