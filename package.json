@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "prestart": "prisma migrate deploy",
     "start": "node dist/server.js",
     "contract:emit": "prisma contract emit",
     "test": "npm run build && node --test tests/*.test.cjs"

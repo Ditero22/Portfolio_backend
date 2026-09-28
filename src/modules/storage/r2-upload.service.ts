@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import {
+  DeleteObjectCommand,
+  GetObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
@@ -96,4 +98,40 @@ export async function uploadImageToR2(
     fileName,
     imageUrl: `${publicUrl}/${encodedKey}`,
   };
+}
+
+export async function uploadResumeToR2(
+  buffer: Buffer,
+  fileName: string,
+  mimeType: string,
+) {
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "pdf";
+  const objectKey = `resumes/${randomUUID()}.${extension}`;
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: objectKey,
+      Body: buffer,
+      ContentType: mimeType,
+    }),
+  );
+  cachedUsage = null;
+
+  return { objectKey };
+}
+
+export async function getR2ObjectData(objectKey: string) {
+  const result = await client.send(
+    new GetObjectCommand({ Bucket: bucketName, Key: objectKey }),
+  );
+  if (!result.Body) return null;
+  return Buffer.from(await result.Body.transformToByteArray());
+}
+
+export async function deleteR2Object(objectKey: string) {
+  await client.send(
+    new DeleteObjectCommand({ Bucket: bucketName, Key: objectKey }),
+  );
+  cachedUsage = null;
 }

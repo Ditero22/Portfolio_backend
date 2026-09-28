@@ -99,9 +99,21 @@ model PortfolioContent {
 }
 
 model SiteSettings {
-  id        String   @id @default("site")
-  isHired   Boolean  @default(false)
-  updatedAt DateTime @updatedAt
+  id             String         @id @default("site")
+  isHired        Boolean        @default(false)
+  activeResumeId String?        @unique
+  activeResume   ResumeVersion? @relation("ActiveResume", fields: [activeResumeId], references: [id], onDelete: SetNull)
+  updatedAt      DateTime       @updatedAt
+}
+
+model ResumeVersion {
+  id            String        @id @default(cuid())
+  fileName      String
+  objectKey     String        @unique
+  mimeType      String
+  sizeBytes     Int
+  createdAt     DateTime      @default(now())
+  activeForSite SiteSettings? @relation("ActiveResume")
 }
 
 model VisitorLog {

@@ -94,19 +94,62 @@ router.get("/admin/analytics", requireAuth, async (_req, res) => {
     today,
     thisWeek,
     thisMonth,
-    postCount,
-    publishedPosts,
-    draftPosts,
-    projects,
+    postGroups,
+    projectGroups,
+    experienceGroups,
+    portfolioContentGroups,
+    siteSettings,
   ] = await Promise.all([
     uniqueVisitorsSince(starts.day, now),
     uniqueVisitorsSince(starts.week, now),
     uniqueVisitorsSince(starts.month, now),
-    prisma.blogPost.count(),
-    prisma.blogPost.count({ where: { published: true } }),
-    prisma.blogPost.count({ where: { published: false } }),
-    prisma.project.count({ where: { deletedAt: null } }),
+    prisma.blogPost.groupBy({
+      by: ["published"],
+      _count: { _all: true },
+    }),
+    prisma.project.groupBy({
+      by: ["published"],
+      where: { deletedAt: null },
+      _count: { _all: true },
+    }),
+    prisma.experience.groupBy({
+      by: ["published"],
+      where: { deletedAt: null },
+      _count: { _all: true },
+    }),
+    prisma.portfolioContent.groupBy({
+      by: ["kind", "published"],
+      _count: { _all: true },
+    }),
+    prisma.siteSettings.findUnique({
+      where: { id: "site" },
+      select: { isHired: true },
+    }),
   ]);
+
+  const countVisibility = (
+    groups: { published: boolean; _count: { _all: number } }[],
+  ) => {
+    const published = groups
+      .filter((group) => group.published)
+      .reduce((total, group) => total + group._count._all, 0);
+    const hidden = groups
+      .filter((group) => !group.published)
+      .reduce((total, group) => total + group._count._all, 0);
+    return { total: published + hidden, published, hidden };
+  };
+  const postVisibility = countVisibility(postGroups);
+  const projectVisibility = countVisibility(projectGroups);
+  const experienceVisibility = countVisibility(experienceGroups);
+  const portfolioContentVisibility = (kind: string) =>
+    countVisibility(
+      portfolioContentGroups
+        .filter((group) => group.kind.toLowerCase() === kind)
+        .map((group) => ({
+          published: group.published,
+          _count: group._count,
+        })),
+    );
 
   let storage: {
     available: boolean;
@@ -125,7 +168,20 @@ router.get("/admin/analytics", requireAuth, async (_req, res) => {
   res.setHeader("Cache-Control", "no-store");
   res.json({
     visitors: { today, thisWeek, thisMonth },
-    content: { posts: postCount, publishedPosts, draftPosts, projects },
+    content: {
+      posts: postVisibility.total,
+      publishedPosts: postVisibility.published,
+      draftPosts: postVisibility.hidden,
+      projects: projectVisibility.total,
+      publishedProjects: projectVisibility.published,
+      hiddenProjects: projectVisibility.hidden,
+      experience: experienceVisibility,
+      stack: portfolioContentVisibility("stack"),
+      skills: portfolioContentVisibility("skill"),
+      certifications: portfolioContentVisibility("certification"),
+      recommendations: portfolioContentVisibility("recommendation"),
+    },
+    settings: { isHired: siteSettings?.isHired ?? false },
     storage,
     onlineViewers: currentViewerCount(),
     retentionDays: 90,

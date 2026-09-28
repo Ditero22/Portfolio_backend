@@ -9,6 +9,7 @@ import projectUploadRouter from "./modules/project/routes/upload.routes.js";
 import experienceRouter from "./modules/experience/routes/experience.routes.js";
 import portfolioContentRouter from "./modules/portfolioContent/routes/portfolioContent.routes.js";
 import settingsRouter from "./modules/settings/routes/settings.routes.js";
+import resumeRouter from "./modules/resume/routes/resume.routes.js";
 import analyticsRouter from "./modules/analytics/routes/analytics.routes.js";
 import {
   apiRateLimit,
@@ -62,6 +63,7 @@ app.use("/api/auth/login", loginRateLimit);
 app.use("/api/auth/pin-reset", pinResetRateLimit);
 app.use("/api/blog/upload", uploadRateLimit);
 app.use("/api/projects/upload", uploadRateLimit);
+app.use("/api/admin/resumes/upload", uploadRateLimit);
 app.use(express.json({ limit: "100kb" }));
 
 // Health check
@@ -82,6 +84,7 @@ app.use("/api", experienceRouter);
 app.use("/api", analyticsRouter);
 app.use("/api", portfolioContentRouter);
 app.use("/api", settingsRouter);
+app.use("/api", resumeRouter);
 
 // Blog image upload routes
 app.use("/api/blog", uploadRouter);
