@@ -85,6 +85,20 @@ test("experience validation, privacy, order, and deletion", async () => {
         .status,
       400,
     );
+    assert.equal(
+      (await send("/experience", "POST", { ...details, company: "x".repeat(201) }))
+        .status,
+      400,
+    );
+    assert.equal(
+      (
+        await send("/experience", "POST", {
+          ...details,
+          highlights: Array.from({ length: 41 }, (_, index) => `Highlight ${index}`),
+        })
+      ).status,
+      400,
+    );
     assert.equal((await send("/experience", "POST", details)).status, 201);
     assert.deepEqual(await (await fetch(base + "/experience")).json(), []);
     assert.equal(

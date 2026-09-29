@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import type { Request, Response } from "express";
 
 import { uploadImageToR2 } from "../../storage/r2-upload.service.js";
+import { logServerError } from "../../../security/safe-log.js";
 
 export async function uploadBlogImage(req: Request, res: Response) {
   try {
@@ -30,7 +31,7 @@ export async function uploadBlogImage(req: Request, res: Response) {
       fileName: result.fileName,
     });
   } catch (error) {
-    console.error("R2 blog image upload error:", error);
+    logServerError("R2 blog image upload failed.", error);
 
     // Clean up the temporary file if it exists.
     if (req.file?.path) {

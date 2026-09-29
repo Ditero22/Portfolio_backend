@@ -8,6 +8,9 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
+const adminUserId = "admin";
+const maxTokenAge = "5h";
+
 export function requireAuth(
   req: AuthenticatedRequest,
   res: Response,
@@ -24,14 +27,17 @@ export function requireAuth(
   const token = authorization.substring(7);
   const secret = process.env.JWT_SECRET;
 
-  if (!secret) {
+  if (!secret?.trim()) {
     return res.status(500).json({
       message: "JWT_SECRET is not configured.",
     });
   }
 
   try {
-    const payload = jwt.verify(token, secret);
+    const payload = jwt.verify(token, secret, {
+      algorithms: ["HS256"],
+      maxAge: maxTokenAge,
+    });
 
     if (
       typeof payload !== "object" ||
@@ -55,4 +61,18 @@ export function requireAuth(
       message: "Invalid or expired token.",
     });
   }
+}
+
+/** Require the one admin identity this portfolio supports. */
+export function requireAdmin(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  return requireAuth(req, res, () => {
+    if (req.user?.userId !== adminUserId || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required." });
+    }
+    next();
+  });
 }

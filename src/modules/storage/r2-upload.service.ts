@@ -12,7 +12,7 @@ const accountId = process.env.R2_ACCOUNT_ID;
 const accessKeyId = process.env.R2_ACCESS_KEY_ID;
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 const bucketName = process.env.R2_BUCKET_NAME;
-const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/+$/, "");
+const publicUrl = process.env.R2_PUBLIC_URL?.trim().replace(/\/+$/, "");
 
 if (
   !accountId ||
@@ -77,7 +77,7 @@ export async function uploadImageToR2(
   filePath: string,
   fileName: string,
   mimeType: string,
-  prefix: "blog" | "projects" = "blog",
+  prefix: "blog" | "projects" | "certifications" = "blog",
 ): Promise<R2UploadResult> {
   const extension = fileName.match(/\.([a-zA-Z0-9]+)$/)?.[1]?.toLowerCase();
   const objectKey =
@@ -91,6 +91,7 @@ export async function uploadImageToR2(
       ContentType: mimeType,
     }),
   );
+  cachedUsage = null;
 
   const encodedKey = objectKey.split("/").map(encodeURIComponent).join("/");
   return {

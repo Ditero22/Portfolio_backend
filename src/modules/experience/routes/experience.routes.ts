@@ -1,10 +1,18 @@
 import { Router } from "express";
 import prisma from "../../../database/prisma.js";
-import { requireAuth } from "../../../middleware/auth.middleware.js";
+import { requireAdmin } from "../../../middleware/auth.middleware.js";
 
 const router = Router();
 const orderBy = [{ sortOrder: "asc" as const }, { id: "asc" as const }];
 const month = /^\d{4}-(0[1-9]|1[0-2])$/;
+const experienceLimits = {
+  company: 200,
+  role: 200,
+  description: 6_000,
+  location: 200,
+  highlights: 40,
+  highlight: 500,
+} as const;
 function parseInput(body: unknown) {
   if (!body || typeof body !== "object") return null;
   const data = body as Record<string, unknown>;
@@ -16,9 +24,21 @@ function parseInput(body: unknown) {
     return null;
   if (
     typeof data.location !== "string" ||
+    data.location.length > experienceLimits.location ||
     typeof data.published !== "boolean" ||
     !Array.isArray(data.highlights) ||
-    !data.highlights.every((value) => typeof value === "string")
+    data.highlights.length > experienceLimits.highlights ||
+    !data.highlights.every(
+      (value) =>
+        typeof value === "string" &&
+        value.trim().length <= experienceLimits.highlight,
+    )
+  )
+    return null;
+  if (
+    (data.company as string).trim().length > experienceLimits.company ||
+    (data.role as string).trim().length > experienceLimits.role ||
+    (data.description as string).trim().length > experienceLimits.description
   )
     return null;
   const startDate = data.startDate as string;
@@ -53,15 +73,16 @@ router.get("/experience", async (_req, res) => {
     }),
   );
 });
-router.get("/admin/experience", requireAuth, async (_req, res) =>
+router.get("/admin/experience", requireAdmin, async (_req, res) =>
   res.json(
     await prisma.experience.findMany({ where: { deletedAt: null }, orderBy }),
   ),
 );
-router.patch("/admin/experience/order", requireAuth, async (req, res) => {
+router.patch("/admin/experience/order", requireAdmin, async (req, res) => {
   const ids: unknown = req.body?.ids;
   if (
     !Array.isArray(ids) ||
+    ids.length > 500 ||
     !ids.every((id): id is string => typeof id === "string") ||
     new Set(ids).size !== ids.length
   ) {
@@ -90,7 +111,7 @@ router.patch("/admin/experience/order", requireAuth, async (req, res) => {
   }
   res.json(result);
 });
-router.post("/experience", requireAuth, async (req, res) => {
+router.post("/experience", requireAdmin, async (req, res) => {
   const data = parseInput(req.body);
   if (!data) {
     res
@@ -107,7 +128,7 @@ router.post("/experience", requireAuth, async (req, res) => {
       }),
     );
 });
-router.patch("/experience/:id", requireAuth, async (req, res) => {
+router.patch("/experience/:id", requireAdmin, async (req, res) => {
   const existing = await prisma.experience.findFirst({
     where: { id: String(req.params.id), deletedAt: null },
   });
@@ -126,7 +147,7 @@ router.patch("/experience/:id", requireAuth, async (req, res) => {
     await prisma.experience.update({ where: { id: existing.id }, data }),
   );
 });
-router.delete("/experience/:id", requireAuth, async (req, res) => {
+router.delete("/experience/:id", requireAdmin, async (req, res) => {
   const result = await prisma.experience.updateMany({
     where: { id: String(req.params.id), deletedAt: null },
     data: { deletedAt: new Date() },

@@ -16,6 +16,7 @@ enum PortfolioContentType {
   CERTIFICATION
   RECOMMENDATION
   SKILL
+  RESOURCE
 }
 
 model User {
@@ -90,6 +91,7 @@ model PortfolioContent {
   description String?
   category    String?
   url         String?
+  imageUrl    String?
   published   Boolean              @default(false)
   sortOrder   Int                  @default(0)
   createdAt   DateTime             @default(now())

@@ -5,7 +5,7 @@ import {
   type NextFunction,
 } from "express";
 import multer from "multer";
-import { requireAuth } from "../../../middleware/auth.middleware.js";
+import { requireAdmin } from "../../../middleware/auth.middleware.js";
 import resumeUpload from "../middleware/resume-upload.middleware.js";
 import {
   activateResume,
@@ -46,10 +46,10 @@ function handleResumeUploadError(
 
 router.get("/resume/current", getCurrentResume);
 router.get("/resume/download", downloadCurrentResume);
-router.get("/admin/resumes", requireAuth, listAdminResumes);
+router.get("/admin/resumes", requireAdmin, listAdminResumes);
 router.post(
   "/admin/resumes/upload",
-  requireAuth,
+  requireAdmin,
   (request, response, next) => {
     resumeUpload.single("resume")(request, response, (error) => {
       handleResumeUploadError(error, request, response, next);
@@ -57,7 +57,7 @@ router.post(
   },
   uploadResume,
 );
-router.patch("/admin/resumes/:id/activate", requireAuth, activateResume);
-router.get("/admin/resumes/:id/download", requireAuth, downloadAdminResume);
+router.patch("/admin/resumes/:id/activate", requireAdmin, activateResume);
+router.get("/admin/resumes/:id/download", requireAdmin, downloadAdminResume);
 
 export default router;

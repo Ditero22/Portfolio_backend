@@ -91,11 +91,19 @@ test("project categories and metadata persist through protected CRUD", async () 
     "Content-Type": "application/json",
     Authorization: `Bearer ${jwt.sign({ userId: "admin", role: "admin" }, process.env.JWT_SECRET)}`,
   };
+  const nonAdminHeaders = {
+    Authorization: `Bearer ${jwt.sign({ userId: "viewer", role: "viewer" }, process.env.JWT_SECRET)}`,
+  };
   const send = (path, method, body) =>
     fetch(base + path, { method, headers, body: JSON.stringify(body) });
 
   try {
     assert.equal((await fetch(`${base}/admin/projects`)).status, 401);
+    assert.equal(
+      (await fetch(`${base}/admin/projects`, { headers: nonAdminHeaders }))
+        .status,
+      403,
+    );
     assert.equal(
       (await fetch(`${base}/projects/upload`, { method: "POST" })).status,
       401,
@@ -110,6 +118,22 @@ test("project categories and metadata persist through protected CRUD", async () 
         })
       ).status,
       400,
+    );
+    const malformedImage = new FormData();
+    malformedImage.append(
+      "image",
+      new Blob(["not an image"], { type: "image/png" }),
+      "../../outside.png",
+    );
+    const malformedImageResponse = await fetch(`${base}/projects/upload`, {
+      method: "POST",
+      headers: { Authorization: headers.Authorization },
+      body: malformedImage,
+    });
+    assert.equal(malformedImageResponse.status, 400);
+    assert.match(
+      (await malformedImageResponse.json()).message,
+      /contents do not match/,
     );
     assert.equal(
       (

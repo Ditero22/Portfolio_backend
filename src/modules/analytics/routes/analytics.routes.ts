@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
 import prisma from "../../../database/prisma.js";
-import { requireAuth } from "../../../middleware/auth.middleware.js";
+import { requireAdmin } from "../../../middleware/auth.middleware.js";
 import { getR2StorageUsage } from "../../storage/r2-upload.service.js";
 
 const router = Router();
@@ -87,7 +87,7 @@ router.post("/analytics/visit", async (req, res) => {
   res.status(202).end();
 });
 
-router.get("/admin/analytics", requireAuth, async (_req, res) => {
+router.get("/admin/analytics", requireAdmin, async (_req, res) => {
   const now = new Date();
   const starts = rangeStarts(now);
   const [
@@ -180,6 +180,7 @@ router.get("/admin/analytics", requireAuth, async (_req, res) => {
       skills: portfolioContentVisibility("skill"),
       certifications: portfolioContentVisibility("certification"),
       recommendations: portfolioContentVisibility("recommendation"),
+      resources: portfolioContentVisibility("resource"),
     },
     settings: { isHired: siteSettings?.isHired ?? false },
     storage,

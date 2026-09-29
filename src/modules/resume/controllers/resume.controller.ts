@@ -5,6 +5,7 @@ import {
   getR2ObjectData,
   uploadResumeToR2,
 } from "../../storage/r2-upload.service.js";
+import { logServerError } from "../../../security/safe-log.js";
 
 const mimeTypesByExtension: Record<string, string> = {
   pdf: "application/pdf",
@@ -131,7 +132,7 @@ export async function uploadResume(request: Request, response: Response) {
     });
   } catch (error) {
     if (objectKey) await deleteR2Object(objectKey).catch(() => {});
-    console.error("Resume upload failed.", error);
+    logServerError("Resume upload failed.", error);
     response.status(502).json({
       message: "Could not save the resume. Please try again.",
     });

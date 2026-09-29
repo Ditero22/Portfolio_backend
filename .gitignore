@@ -3,6 +3,13 @@ dist/
 .env
 .env.*
 !.env.example
+client_secret_*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.dump
+*.sql.gz
 
 generated/
 coverage/

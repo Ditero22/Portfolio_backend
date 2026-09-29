@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs";
+import { randomUUID } from "node:crypto";
 import multer from "multer";
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -11,14 +12,8 @@ const storage = multer.diskStorage({
   },
 
   filename: (_req, file, cb) => {
-    const extension =
-      file.originalname.split(".").pop()?.toLowerCase() ?? "bin";
-
-    const filename = `${Date.now()}-${Math.round(
-      Math.random() * 1_000_000,
-    )}.${extension}`;
-
-    cb(null, filename);
+    // The uploaded name is untrusted; use a server-generated path-safe name.
+    cb(null, `${randomUUID()}.upload`);
   },
 });
 
@@ -27,12 +22,15 @@ const upload = multer({
 
   limits: {
     fileSize: 5 * 1024 * 1024,
+    files: 1,
+    fields: 0,
+    parts: 1,
+    fieldNameSize: 100,
   },
 
   fileFilter: (_req, file, cb) => {
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      cb(new Error("Only JPG, PNG, WebP, and GIF images are allowed."));
-
+      cb(null, false);
       return;
     }
 

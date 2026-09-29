@@ -9,19 +9,18 @@ import {
   consumePinResetChallenge,
   createPinResetChallenge,
 } from "../services/pin-reset-challenge.service.js";
+import { isConfiguredOriginAllowed } from "../../../security/origins.js";
 
 function hasAllowedBrowserOrigin(req: Request) {
-  const origin = req.get("origin");
-  const allowedOrigins = (process.env.CORS_ORIGINS ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  return Boolean(origin && allowedOrigins.includes(origin));
+  return isConfiguredOriginAllowed(req.get("origin"));
 }
 
 export async function login(req: Request, res: Response) {
-  const { pin } = req.body;
+  const body = req.body;
+  const pin =
+    typeof body === "object" && body !== null && !Array.isArray(body)
+      ? body.pin
+      : undefined;
 
   if (typeof pin !== "string" || !/^\d{8}$/.test(pin)) {
     return res.status(400).json({

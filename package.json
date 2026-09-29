@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "prestart": "prisma migrate deploy",
+    "db:migrate:deploy": "node scripts/migrate.cjs",
+    "prestart": "npm run db:migrate:deploy",
     "start": "node dist/server.js",
     "contract:emit": "prisma contract emit",
     "test": "npm run build && node --test tests/*.test.cjs"
@@ -28,11 +29,11 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "google-auth-library": "^11.1.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "rate-limit-redis": "^6.0.1",
-    "redis": "^6.2.1",
-    "socket.io": "^4.8.3"
+    "redis": "^6.2.1"
   },
   "devDependencies": {
     "@prisma/cli-engine": "^0.4.0",

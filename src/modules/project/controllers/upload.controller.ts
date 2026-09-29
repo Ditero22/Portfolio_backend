@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import type { Request, Response } from "express";
 import { uploadImageToR2 } from "../../storage/r2-upload.service.js";
+import { logServerError } from "../../../security/safe-log.js";
 
 export async function uploadProjectImage(req: Request, res: Response) {
   try {
@@ -23,7 +24,8 @@ export async function uploadProjectImage(req: Request, res: Response) {
       objectKey: result.objectKey,
       fileName: result.fileName,
     });
-  } catch {
+  } catch (error) {
+    logServerError("R2 project image upload failed.", error);
     if (req.file?.path) {
       await fs.unlink(req.file.path).catch(() => {});
     }

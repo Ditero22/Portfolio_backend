@@ -86,6 +86,51 @@ test("draft privacy, authenticated admin reads, and publication round trip", asy
     assert.equal((await fetch(`${base}/blog/slug/draft`)).status, 404);
     assert.equal((await fetch(`${base}/admin/blog`)).status, 401);
     assert.equal((await fetch(`${base}/admin/blog/test-post`)).status, 401);
+    const nonAdminToken = jwt.sign(
+      { userId: "viewer", role: "admin" },
+      process.env.JWT_SECRET,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/admin/blog`, {
+          headers: { Authorization: `Bearer ${nonAdminToken}` },
+        })
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/blog`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ title: { unexpected: "object" } }),
+        })
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/blog`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ title: "x".repeat(161) }),
+        })
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/blog`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            title: "Unsafe image URL",
+            imageUrl: "javascript:alert(1)",
+          }),
+        })
+      ).status,
+      400,
+    );
     assert.equal(
       (await (await fetch(`${base}/admin/blog`, { headers })).json()).length,
       1,

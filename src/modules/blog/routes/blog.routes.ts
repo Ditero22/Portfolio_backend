@@ -10,7 +10,7 @@ import {
   updateBlog,
 } from "../controllers/blog.controller.js";
 
-import { requireAuth } from "../../../middleware/auth.middleware.js";
+import { requireAdmin } from "../../../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -23,10 +23,10 @@ const router = Router();
 // Get all blog posts
 router.get("/blog", getBlogPosts);
 router.get("/blog/slug/:slug", getBlogPostBySlug);
-router.get("/admin/blog", requireAuth, getAdminBlogPosts);
+router.get("/admin/blog", requireAdmin, getAdminBlogPosts);
 router.get(
   "/admin/blog/:id",
-  requireAuth,
+  requireAdmin,
   (_req, res, next) => {
     res.locals.includeDrafts = true;
     next();
@@ -44,12 +44,12 @@ router.get("/blog/:id", getBlogPost);
  */
 
 // Create blog post
-router.post("/blog", requireAuth, createBlog);
+router.post("/blog", requireAdmin, createBlog);
 
 // Update blog post
-router.patch("/blog/:id", requireAuth, updateBlog);
+router.patch("/blog/:id", requireAdmin, updateBlog);
 
 // Delete blog post
-router.delete("/blog/:id", requireAuth, deleteBlog);
+router.delete("/blog/:id", requireAdmin, deleteBlog);
 
 export default router;

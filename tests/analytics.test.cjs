@@ -56,6 +56,8 @@ test("admin analytics summarizes every managed content feature", async () => {
     { kind: "SKILL", published: true, _count: { _all: 7 } },
     { kind: "CERTIFICATION", published: false, _count: { _all: 2 } },
     { kind: "RECOMMENDATION", published: true, _count: { _all: 3 } },
+    { kind: "RESOURCE", published: true, _count: { _all: 8 } },
+    { kind: "RESOURCE", published: false, _count: { _all: 1 } },
   ];
   prisma.siteSettings.findUnique = async () => ({ isHired: true });
 
@@ -87,6 +89,7 @@ test("admin analytics summarizes every managed content feature", async () => {
       skills: { total: 7, published: 7, hidden: 0 },
       certifications: { total: 2, published: 0, hidden: 2 },
       recommendations: { total: 3, published: 3, hidden: 0 },
+      resources: { total: 9, published: 8, hidden: 1 },
     });
     assert.deepEqual(body.settings, { isHired: true });
   } finally {

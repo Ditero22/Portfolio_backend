@@ -44,6 +44,17 @@ test("admin login reports missing JWT configuration and handles valid and invali
     });
     assert.equal(databaseLookups, 0);
 
+    const invalidShapeResponse = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "[]",
+    });
+    assert.equal(invalidShapeResponse.status, 400);
+    assert.deepEqual(await invalidShapeResponse.json(), {
+      message: "PIN must be exactly 8 digits.",
+    });
+    assert.equal(databaseLookups, 0);
+
     process.env.JWT_SECRET = "isolated-auth-login-test-secret";
     const validResponse = await postLogin("12345678");
     assert.equal(validResponse.status, 200);
